@@ -4,8 +4,8 @@
   pkgconfig, glib, gtk, gtkmm, iproute, dbus, systemd }:
 
 let
-  majorVersion = "10.0";
-  minorVersion = "7";
+  majorVersion = "10.1";
+  minorVersion = "0";
   version = "${majorVersion}.${minorVersion}";
 
 in stdenv.mkDerivation rec {
@@ -14,7 +14,7 @@ in stdenv.mkDerivation rec {
     owner = "vmware";
     repo = "open-vm-tools";
     rev = "stable-${version}";
-    sha256 = "0xxgppxjisg3jly21r7mjk06rc4n7ssyvapasxhbi2d1bw0xkvrj";
+    sha256 = "1qzk4mvw618ca4j9agsfpqch9jgwghvdc4rpkvlyz8kirvh9iniz";
   };
 
   sourceRoot = "${src.name}/open-vm-tools";

@@ -261,7 +261,7 @@
   ./services/misc/gitolite.nix
   ./services/misc/gogs.nix
   ./services/misc/gpsd.nix
-  ./services/misc/ihaskell.nix
+  #./services/misc/ihaskell.nix
   ./services/misc/leaps.nix
   ./services/misc/mantisbt.nix
   ./services/misc/mathics.nix
@@ -328,6 +328,7 @@
   ./services/monitoring/scollector.nix
   ./services/monitoring/smartd.nix
   ./services/monitoring/statsd.nix
+  ./services/monitoring/sysstat.nix
   ./services/monitoring/systemhealth.nix
   ./services/monitoring/teamviewer.nix
   ./services/monitoring/telegraf.nix
@@ -497,7 +498,8 @@
   ./services/security/frandom.nix
   ./services/security/haka.nix
   ./services/security/haveged.nix
-  ./services/security/hologram.nix
+  ./services/security/hologram-server.nix
+  ./services/security/hologram-agent.nix
   ./services/security/munge.nix
   ./services/security/oauth2_proxy.nix
   ./services/security/physlock.nix
@@ -521,6 +523,7 @@
   ./services/web-apps/atlassian/confluence.nix
   ./services/web-apps/atlassian/crowd.nix
   ./services/web-apps/atlassian/jira.nix
+  ./services/web-apps/frab.nix
   ./services/web-apps/mattermost.nix
   ./services/web-apps/nixbot.nix
   ./services/web-apps/pump.io.nix

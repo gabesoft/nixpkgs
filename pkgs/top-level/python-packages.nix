@@ -4422,8 +4422,9 @@ in {
     buildInputs = with self; [ nose ];
     propagatedBuildInputs = with self; [ toolz ];
 
+    # Disable failing test https://github.com/pytoolz/cytoolz/issues/97
     checkPhase = ''
-      nosetests -v $out/${python.sitePackages}
+      NOSE_EXCLUDE=test_curried_exceptions nosetests -v $out/${python.sitePackages}
     '';
 
     meta = {
@@ -5149,24 +5150,7 @@ in {
     };
   };
 
-  pytestpep257 = buildPythonPackage rec {
-     name = "pytest-pep257-${version}";
-     version = "0.0.1";
-
-     src = pkgs.fetchurl {
-       url = "mirror://pypi/p/pytest-pep257/${name}.tar.gz";
-       sha256 = "003vdkxpx37n0kjqpwgj3314hwk2jfz3nz58db7xh68bf8xy75lk";
-     };
-
-     buildInputs = with self; [ pytest ];
-     propagatedBuildInputs = with self ; [ pep257 ];
-
-     meta = {
-       homepage = https://github.com/anderslime/pytest-pep257;
-       description = "py.test plugin for PEP257";
-       license = licenses.mit;
-     };
-  };
+  pytest-pep257 = callPackage ../development/python-modules/pytest-pep257.nix { };
 
   pytest-raisesregexp = buildPythonPackage rec {
     name = "pytest-raisesregexp-${version}";
@@ -9348,6 +9332,9 @@ in {
     # Failing test on Python 3.x
     postPatch = '''' + optionalString isPy3k ''
       sed -i -e '70,84d' joblib/test/test_format_stack.py
+      # test_nested_parallel_warnings: ValueError: Non-zero return code: -9.
+      # Not sure why but it's nix-specific. Try removing for new joblib releases.
+      rm joblib/test/test_parallel.py
     '';
 
     meta = {
@@ -17830,11 +17817,11 @@ in {
 
   requests-mock = buildPythonPackage rec {
     name = "requests-mock-${version}";
-    version = "0.6.0";
+    version = "1.3.0";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/r/requests-mock/${name}.tar.gz";
-      sha256 = "0gmd88c224y53b1ai8cfsrcxm9kw3gdqzysclmnaqspg7zjhxwd1";
+      sha256 = "0jr997dvk6zbmhvbpcv3rajrgag69mcsm1ai3w3rgk2jdh6rg1mx";
     };
 
     patchPhase = ''
@@ -18382,28 +18369,7 @@ in {
     };
   };
 
-  pep257 = buildPythonPackage rec {
-    name = "pep257-${version}";
-    version = "0.3.2";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/GreenSteam/pep257/archive/${version}.tar.gz";
-      sha256 = "0v8aq0xzsa7clazszxl42904c3jpq69lg8a5hg754bqcqf72hfrn";
-    };
-    LC_ALL="en_US.UTF-8";
-    buildInputs = with self; [ pkgs.glibcLocales pytest_29 ];
-
-    checkPhase = ''
-      py.test
-    '';
-
-    meta = {
-      homepage = https://github.com/GreenSteam/pep257/;
-      description = "Python docstring style checker";
-      longDescription = "Static analysis tool for checking compliance with Python PEP 257.";
-      lecense = licenses.mit;
-    };
-  };
+  pep257 = callPackage ../development/python-modules/pep257.nix { };
 
   percol = buildPythonPackage rec {
     name = "percol-${version}";
@@ -29805,6 +29771,23 @@ EOF
     '';
   };
 
+  neovim-remote = buildPythonPackage rec {
+    name = "neovim-remote-${version}";
+    version = "v1.4.0";
+    disabled = !isPy3k;
+
+    src = pkgs.fetchFromGitHub {
+      owner = "mhinz";
+      repo = "neovim-remote";
+      rev = version;
+      sha256 = "0msvfh27f56xj5ki59ikzavxz863nal5scm57n43618m49qzg8iz";
+    };
+
+    propagatedBuildInputs = [
+      self.neovim
+    ];
+  };
+
   ghp-import = buildPythonPackage rec {
     version = "0.4.1";
     name = "ghp-import-${version}";
@@ -29905,16 +29888,15 @@ EOF
   };
 
   jenkins-job-builder = buildPythonPackage rec {
-    name = "jenkins-job-builder-1.4.0";
+    name = "jenkins-job-builder-1.6.1";
     disabled = ! (isPy26 || isPy27);
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/j/jenkins-job-builder/${name}.tar.gz";
-      sha256 = "10zipq3dyyfhwvrcyk70zky07b0fssiahwig2h8daw977aszsfqb";
+      sha256 = "1v3xknfzgsp35nn3ma4imz233v569v3x75mx2yxlv1xf32nn7yk4";
     };
 
     patchPhase = ''
-      sed -i '/ordereddict/d' requirements.txt
       export HOME=$TMPDIR
     '';
 

@@ -2190,6 +2190,8 @@ with pkgs;
 
   hecate = callPackage ../applications/editors/hecate { };
 
+  heaptrack = callPackage ../development/tools/profiling/heaptrack {};
+
   heimdall = callPackage ../tools/misc/heimdall { };
 
   hevea = callPackage ../tools/typesetting/hevea { };
@@ -5792,7 +5794,7 @@ with pkgs;
 
   pachyderm = callPackage ../applications/networking/cluster/pachyderm { };
 
-  php = php70;
+  php = php71;
 
   phpPackages = php70Packages;
 
@@ -13155,6 +13157,8 @@ with pkgs;
 
   inherit (gnome3) epiphany;
 
+  epic5 = callPackage ../applications/networking/irc/epic5 { };
+
   eq10q = callPackage ../applications/audio/eq10q { };
 
   errbot = callPackage ../applications/networking/errbot {
@@ -15354,6 +15358,8 @@ with pkgs;
 
   unpaper = callPackage ../tools/graphics/unpaper { };
 
+  urh = callPackage ../applications/misc/urh { };
+
   uucp = callPackage ../tools/misc/uucp { };
 
   uvccapture = callPackage ../applications/video/uvccapture { };
@@ -15934,6 +15940,9 @@ with pkgs;
   airstrike = callPackage ../games/airstrike { };
 
   alienarena = callPackage ../games/alienarena { };
+
+  amoeba = callPackage ../games/amoeba { };
+  amoeba-data = callPackage ../games/amoeba/data.nix { };
 
   andyetitmoves = if stdenv.isLinux then callPackage ../games/andyetitmoves {} else null;
 

@@ -1993,8 +1993,6 @@ with pkgs;
 
   gptfdisk = callPackage ../tools/system/gptfdisk { };
 
-  grafana-old = callPackage ../development/tools/misc/grafana { };
-
   grafx2 = callPackage ../applications/graphics/grafx2 {};
 
   grails = callPackage ../development/web/grails { jdk = null; };
@@ -6815,6 +6813,7 @@ with pkgs;
 
   ycmd = callPackage ../development/tools/misc/ycmd {
     inherit (darwin.apple_sdk.frameworks) Cocoa;
+    llvmPackages = llvmPackages_39;
     python = python2;
   };
 

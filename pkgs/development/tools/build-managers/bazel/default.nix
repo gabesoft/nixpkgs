@@ -1,7 +1,6 @@
-{ stdenv, fetchurl, buildFHSUserEnv, writeScript, jdk, zip, unzip,
-  which, makeWrapper, binutils }:
+{ stdenv, fetchurl, jdk, zip, unzip, which, bash, binutils, coreutils }:
 
-let
+stdenv.mkDerivation rec {
 
   version = "0.4.4";
 
@@ -13,60 +12,78 @@ let
     platforms = platforms.linux;
   };
 
-  bootstrapEnv = buildFHSUserEnv {
-    name = "bazel-bootstrap-env";
+  name = "bazel-${version}";
 
-    targetPkgs = pkgs: [ ];
-
-    inherit meta;
+  src = fetchurl {
+    url = "https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-dist.zip";
+    sha256 = "1fwfahkqi680zyxmdriqj603lpacyh6cg6ff25bn9bkilbfj2anm";
   };
 
-  bazelBinary = stdenv.mkDerivation rec {
+  sourceRoot = ".";
 
-    name = "bazel-${version}";
+  postPatch = ''
+    patchShebangs .
+    for f in \
+      src/main/java/com/google/devtools/build/lib/analysis/CommandHelper.java \
+      src/main/java/com/google/devtools/build/lib/bazel/rules/BazelConfiguration.java \
+      src/test/java/com/google/devtools/build/lib/shell/CommandTest.java \
+      src/test/java/com/google/devtools/build/lib/shell/InterruptibleTest.java \
+      src/test/java/com/google/devtools/build/lib/shell/LoadTest.java \
+      src/test/java/com/google/devtools/build/lib/skylark/SkylarkRuleImplementationFunctionsTest.java \
+      src/test/java/com/google/devtools/build/lib/standalone/StandaloneSpawnStrategyTest.java
+    do
+      substituteInPlace $f \
+        --replace /bin/bash ${bash}/bin/bash \
+        --replace /bin/cat ${coreutils}/bin/cat \
+        --replace /bin/echo ${coreutils}/bin/echo \
+        --replace /bin/false ${coreutils}/bin/false \
+        --replace /bin/pwd ${coreutils}/bin/pwd \
+        --replace /bin/sleep ${coreutils}/bin/sleep \
+        --replace /bin/true ${coreutils}/bin/true
+    done
+  '';
 
-    src = fetchurl {
-      url = "https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-dist.zip";
-      sha256 = "1fwfahkqi680zyxmdriqj603lpacyh6cg6ff25bn9bkilbfj2anm";
-    };
+  buildInputs = [
+    stdenv.cc
+    stdenv.cc.cc.lib
+    jdk
+    zip
+    unzip
+    which
+    binutils
+  ];
 
-    sourceRoot = ".";
+  # These must be propagated since the dependency is hidden in a compressed
+  # archive.
 
-    patches = [ ./java_stub_template.patch ];
+  propagatedBuildInputs = [
+    bash
+    coreutils
+  ];
 
-    packagesNotFromEnv = [
-        stdenv.cc stdenv.cc.cc.lib jdk which zip unzip binutils ];
-    buildInputs = packagesNotFromEnv ++ [ bootstrapEnv makeWrapper ];
+  # If TMPDIR is in the unpack dir we run afoul of blaze's infinite symlink
+  # detector (see com.google.devtools.build.lib.skyframe.FileFunction).
+  # Change this to $(mktemp -d) as soon as we figure out why.
 
-    buildTimeBinPath = stdenv.lib.makeBinPath packagesNotFromEnv;
-    buildTimeLibPath = stdenv.lib.makeLibraryPath packagesNotFromEnv;
+  buildPhase = ''
+    export TMPDIR=/tmp
+    ./compile.sh
+  '';
 
-    runTimeBinPath = stdenv.lib.makeBinPath [ jdk stdenv.cc.cc ];
-    runTimeLibPath = stdenv.lib.makeLibraryPath [ stdenv.cc.cc.lib ];
+  # Build the CPP and Java examples to verify that Bazel works.
 
-    buildWrapper = writeScript "build-wrapper.sh" ''
-      #! ${stdenv.shell} -e
-      export PATH="${buildTimeBinPath}:$PATH"
-      export LD_LIBRARY_PATH="${buildTimeLibPath}:$LD_LIBRARY_PATH"
-      ./compile.sh
-    '';
+  doCheck = true;
+  checkPhase = ''
+    export TEST_TMPDIR=$(pwd)
+    ./output/bazel test --test_output=errors examples/cpp:hello-success_test
+    ./output/bazel test --test_output=errors examples/java-native/src/test/java/com/example/myproject:hello
+  '';
 
-    buildPhase = ''
-      bazel-bootstrap-env ${buildWrapper}
-    '';
+  installPhase = ''
+    mkdir -p $out/bin
+    mv output/bazel $out/bin
+  '';
 
-    installPhase = ''
-      mkdir -p $out/bin
-      cp output/bazel $out/bin/
-      wrapProgram $out/bin/bazel \
-          --suffix PATH ":" "${runTimeBinPath}" \
-          --suffix LD_LIBRARY_PATH ":" "${runTimeLibPath}"
-    '';
-
-    dontStrip = true;
-    dontPatchELF = true;
-
-    inherit meta;
-  };
-
-in bazelBinary
+  dontStrip = true;
+  dontPatchELF = true;
+}

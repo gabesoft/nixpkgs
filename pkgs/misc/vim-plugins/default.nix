@@ -282,6 +282,20 @@ rec {
     sourceRoot = ".";
   };
 
+  clang_complete = buildVimPluginFrom2Nix { # created by nix#NixDerivation
+    name = "clang_complete-2017-02-16";
+    src = fetchgit {
+      url = "git://github.com/Rip-Rip/clang_complete";
+      rev = "b1a507fbc27ef581c966b035f52eafae773a6f32";
+      sha256 = "19zs03giv8h5xmv18y9zn85sxr8akphvbscclrqhs4cf88285cgl";
+    };
+    dependencies = [];
+    preFixup = ''
+      substituteInPlace "$out"/share/vim-plugins/clang_complete/plugin/clang_complete.vim \
+        --replace "let g:clang_library_path = '' + "''" + ''" "let g:clang_library_path='${llvmPackages.clang.cc}/lib/libclang.so'"
+    '';
+  };
+
   commentary = buildVimPluginFrom2Nix { # created by nix#NixDerivation
     name = "commentary-2016-03-10";
     src = fetchgit {
@@ -380,6 +394,17 @@ rec {
       url = "git://github.com/Chiel92/vim-autoformat";
       rev = "56170ff0d3c4e7b9acf0d373425ae2b2f047036e";
       sha256 = "0q4jz79jn6w9nkfvy9dk41d2krccx6pn91lm51987j9viijb6kyq";
+    };
+    dependencies = [];
+
+  };
+
+  vim-indent-object = buildVimPluginFrom2Nix { # created by nix#NixDerivation
+    name = "vim-indent-object-2015-08-11";
+    src = fetchgit {
+      url = "git://github.com/michaeljsmith/vim-indent-object";
+      rev = "1d3e4aac0117d57c3e1aaaa7e5a99f1d7553e01b";
+      sha256 = "1xxl5pwbz56qjfxw6l686m1qc4a3q0r7afa9r5gjhgd1jy67z7d7";
     };
     dependencies = [];
 
@@ -603,6 +628,17 @@ rec {
       url = "git://github.com/eikenb/acp";
       rev = "5c627cec37d0d3b1670cb250d84e176e8b0c644e";
       sha256 = "0h7s4nvxin7m2caka7g1hhlxj1bbiwsvw8s2lqwlh7nq43v23ghg";
+    };
+    dependencies = [];
+
+  };
+
+  argtextobj = buildVimPluginFrom2Nix { # created by nix#NixDerivation
+    name = "argtextobj-vim-2010-10-17";
+    src = fetchgit {
+      url = "git://github.com/vim-scripts/argtextobj.vim";
+      rev = "f3fbe427f7b4ec436416a5816d714dc917dc530b";
+      sha256 = "1l4jh5hdmky1qj5z26jpnk49a6djjcvzyyr6pknrrgb8rzkiln48";
     };
     dependencies = [];
 

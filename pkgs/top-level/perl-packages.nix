@@ -1555,10 +1555,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   CGI = buildPerlPackage rec {
-    name = "CGI-4.31";
+    name = "CGI-4.35";
     src = fetchurl {
       url = "mirror://cpan/authors/id/L/LE/LEEJO/${name}.tar.gz";
-      sha256 = "dee34f45525efb698d02c56ba2458a72acc34c4dcb05344706b587840b4e8c99";
+      sha256 = "07gwnlc7vq58fjwmfsrv0hfyirqqdrpjhf89caq34rjrkz2wsd0b";
     };
     buildInputs = [ TestDeep TestWarn ];
     propagatedBuildInputs = [ HTMLParser self."if" ];
@@ -2696,10 +2696,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   CryptOpenSSLRandom = buildPerlPackage rec {
-    name = "Crypt-OpenSSL-Random-0.10";
+    name = "Crypt-OpenSSL-Random-0.11";
     src = fetchurl {
       url = "mirror://cpan/authors/id/R/RU/RURBAN/${name}.tar.gz";
-      sha256 = "12pirh1pj8lpvzcwj2if9i6dbr6a7s9g1zc7gzbd3v87d6mx0rdf";
+      sha256 = "0yjcabkibrkafywvdkmd1xpi6br48skyk3l15ni176wvlg38335v";
     };
     NIX_CFLAGS_COMPILE = "-I${pkgs.openssl.dev}/include";
     NIX_CFLAGS_LINK = "-L${pkgs.openssl.out}/lib -lcrypto";
@@ -2862,14 +2862,13 @@ let self = _self // overrides; _self = with self; {
     buildInputs = [ ModuleBuild ];
   };
 
-  DataFormValidator = buildPerlModule rec {
-    name = "Data-FormValidator-4.81";
+  DataFormValidator = buildPerlPackage rec {
+    name = "Data-FormValidator-4.85";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/M/MA/MARKSTOS/${name}.tar.gz";
-      sha256 = "f844056231b2eeb4068cafbcab1ddf5d46cb348bd5cfb1d234421c09ee8a0de3";
+      url = "mirror://cpan/authors/id/D/DF/DFARRELL/${name}.tar.gz";
+      sha256 = "809f15d05434ff5667c3967e71e86308fcfad8fce1057420bd2714300b2a5870";
     };
-    buildInputs = [ CGI ModuleBuild ];
-    propagatedBuildInputs = [ DateCalc EmailValid FileMMagic ImageSize MIMETypes Perl6Junction RegexpCommon ];
+    propagatedBuildInputs = [ DateCalc EmailValid FileMMagic ImageSize MIMETypes RegexpCommon ];
     meta = {
       description = "Validates user input (usually from an HTML form) based on input profile";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -3928,10 +3927,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   DigestCRC = buildPerlPackage rec {
-    name = "Digest-CRC-0.21";
+    name = "Digest-CRC-0.22.2";
     src = fetchurl {
       url = "mirror://cpan/authors/id/O/OL/OLIMAUL/${name}.tar.gz";
-      sha256 = "79a0ef8081767c324edb9da39f80835910ed7c5b0539ed106caf7f2467d1958f";
+      sha256 = "112b50f7fbc6f6baf5d4584ee97f542ced6c9ec03a3147f7902c84b8b26778cb";
     };
     meta = {
       description = "Module that calculates CRC sums of all sorts";
@@ -5608,6 +5607,14 @@ let self = _self // overrides; _self = with self; {
       description = "Getopt::Long, but simpler and more powerful";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
       maintainers = [ maintainers.rycee ];
+    };
+  };
+
+  GetoptTabular = buildPerlPackage rec {
+    name = "Getopt-Tabular-0.3";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/G/GW/GWARD/${name}.tar.gz";
+      sha256 = "0xskl9lcj07sdfx5dkma5wvhhgf5xlsq0khgh8kk34dm6dv0dpwv";
     };
   };
 
@@ -9637,6 +9644,19 @@ let self = _self // overrides; _self = with self; {
     buildInputs = [ TestNoWarnings ];
     meta = {
       description = "Internationalizing Domain Names in Applications (IDNA)";
+    };
+  };
+
+  NetIMAPClient = buildPerlPackage rec {
+    name = "Net-IMAP-Client-0.9505";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/G/GA/GANGLION/${name}.tar.gz";
+      sha256 = "d3f6a608b85e09a8080a67a9933837aae6f2cd0e8ee39df3380123dc5e3de912";
+    };
+    buildInputs = [TestPod TestPodCoverage];
+    propagatedBuildInputs = [ IOSocketSSL ListMoreUtils ];
+    meta = {
+      description = "Not so simple IMAP client library";
     };
   };
 

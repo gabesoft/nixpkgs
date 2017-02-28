@@ -3,10 +3,13 @@
 rec {
 
   overrideCabal = drv: f: (drv.override (args: args // {
-    mkDerivation = drv: args.mkDerivation (drv // f drv);
+    mkDerivation = drv: (args.mkDerivation drv).override f;
   })) // {
     overrideScope = scope: overrideCabal (drv.overrideScope scope) f;
   };
+
+  doCoverage = drv: overrideCabal drv (drv: { doCoverage = true; });
+  dontCoverage = drv: overrideCabal drv (drv: { doCoverage = false; });
 
   doHaddock = drv: overrideCabal drv (drv: { doHaddock = true; });
   dontHaddock = drv: overrideCabal drv (drv: { doHaddock = false; });

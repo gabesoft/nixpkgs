@@ -51,7 +51,7 @@ let
       "--with-libmemcached-dir=${pkgs.libmemcached}"
     ];
 
-    buildInputs = with pkgs; [ pkgconfig cyrus_sasl ];
+    buildInputs = with pkgs; [ pkgconfig cyrus_sasl zlib ];
   };
 
   # Not released yet
@@ -69,7 +69,7 @@ let
       "--with-libmemcached-dir=${pkgs.libmemcached}"
     ];
 
-    buildInputs = with pkgs; [ pkgconfig cyrus_sasl ];
+    buildInputs = with pkgs; [ pkgconfig cyrus_sasl zlib ];
   };
 
   # No support for PHP 7 yet (and probably never will be)
@@ -85,7 +85,7 @@ let
     buildInputs = [ pkgs.spidermonkey_1_8_5 ];
   };
 
-  xdebug = if isPhp7 then xdebug24 else xdebug23;
+  xdebug = if isPhp7 then xdebug25 else xdebug23;
 
   xdebug23 = assert !isPhp7; buildPecl {
     name = "xdebug-2.3.1";
@@ -96,10 +96,10 @@ let
     checkTarget = "test";
   };
 
-  xdebug24 = buildPecl {
-    name = "xdebug-2.4.0RC3";
+  xdebug25 = buildPecl {
+    name = "xdebug-2.5.0";
 
-    sha256 = "06ppsihw4cl8kxmywvic6wsm4ps9pvsns2vbab9ivrfyp8b6h5dy";
+    sha256 = "03c9y25a3gc3kpav0cdgmhjixcaly6974hx7wgihi0wlchgavmlb";
 
     doCheck = true;
     checkTarget = "test";

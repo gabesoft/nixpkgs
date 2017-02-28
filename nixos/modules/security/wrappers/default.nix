@@ -1,7 +1,9 @@
 { config, lib, pkgs, ... }:
 let
 
-  inherit (config.security) wrapperDir wrappers setuidPrograms;
+  inherit (config.security) wrapperDir wrappers;
+
+  parentWrapperDir = dirOf wrapperDir;
 
   programs =
     (lib.mapAttrsToList
@@ -15,8 +17,7 @@ let
     hardeningEnable = [ "pie" ];
     installPhase = ''
       mkdir -p $out/bin
-      parentWrapperDir=$(dirname ${wrapperDir})
-      gcc -Wall -O2 -DWRAPPER_DIR=\"$parentWrapperDir\" \
+      gcc -Wall -O2 -DWRAPPER_DIR=\"${parentWrapperDir}\" \
           -lcap-ng -lcap ${./wrapper.c} -o $out/bin/security-wrapper
     '';
   };
@@ -28,6 +29,7 @@ let
     , source
     , owner  ? "nobody"
     , group  ? "nogroup"
+    , permissions ? "u+rx,g+x,o+x"
     , ...
     }:
     assert (lib.versionAtLeast (lib.getVersion config.boot.kernelPackages.kernel) "4.3");
@@ -45,7 +47,7 @@ let
       ${pkgs.libcap.out}/bin/setcap "cap_setpcap,${capabilities}" $wrapperDir/${program}
 
       # Set the executable bit
-      chmod u+rx,g+x,o+x $wrapperDir/${program}
+      chmod ${permissions} $wrapperDir/${program}
     '';
 
   ###### Activation script for the setuid wrappers
@@ -99,30 +101,34 @@ in
     security.wrappers = lib.mkOption {
       type = lib.types.attrs;
       default = {};
-      example = {
-        sendmail.source = "/nix/store/.../bin/sendmail";
-        ping = {
-          source  = "${pkgs.iputils.out}/bin/ping";
-          owner   = "nobody";
-          group   = "nogroup";
-          capabilities = "cap_net_raw+ep";
-        };
-      };
+      example = lib.literalExample
+        ''
+          { sendmail.source = "/nix/store/.../bin/sendmail";
+            ping = {
+              source  = "${pkgs.iputils.out}/bin/ping";
+              owner   = "nobody";
+              group   = "nogroup";
+              capabilities = "cap_net_raw+ep";
+            };
+          }
+        '';
       description = ''
         This option allows the ownership and permissions on the setuid
         wrappers for specific programs to be overridden from the
         default (setuid root, but not setgid root).
 
         <note>
+          <para>The sub-attribute <literal>source</literal> is mandatory,
+          it must be the absolute path to the program to be wrapped.
+          </para>
+
+          <para>The sub-attribute <literal>program</literal> is optional and
+          can give the wrapper program a new name. The default name is the same
+          as the attribute name itself.</para>
+
           <para>Additionally, this option can set capabilities on a
           wrapper program that propagates those capabilities down to the
           wrapped, real program.</para>
-
-          <para>The <literal>program</literal> attribute is the name of
-          the program to be wrapped. If no <literal>source</literal>
-          attribute is provided, specifying the absolute path to the
-          program, then the program will be searched for in the path
-          environment variable.</para>
 
           <para>NOTE: cap_setpcap, which is required for the wrapper
           program to be able to raise caps into the Ambient set is NOT
@@ -151,6 +157,11 @@ in
 
     security.wrappers.fusermount.source = "${pkgs.fuse}/bin/fusermount";
 
+    boot.specialFileSystems.${parentWrapperDir} = {
+      fsType = "tmpfs";
+      options = [ "nodev" ];
+    };
+
     # Make sure our wrapperDir exports to the PATH env variable when
     # initializing the shell
     environment.extraInit = ''
@@ -178,19 +189,15 @@ in
           # Remove the old /run/setuid-wrappers-dir path from the
           # system as well...
           #
-          # TDOO: this is only necessary for ugprades 16.09 => 17.x;
+          # TODO: this is only necessary for ugprades 16.09 => 17.x;
           # this conditional removal block needs to be removed after
           # the release.
           if [ -d /run/setuid-wrapper-dirs ]; then
             rm -rf /run/setuid-wrapper-dirs
           fi
 
-          # Get the "/run/wrappers" path, we want to place the tmpdirs
-          # for the wrappers there
-          parentWrapperDir="$(dirname ${wrapperDir})"
-
-          mkdir -p "$parentWrapperDir"
-          wrapperDir=$(mktemp --directory --tmpdir="$parentWrapperDir" wrappers.XXXXXXXXXX)
+          # We want to place the tmpdirs for the wrappers to the parent dir.
+          wrapperDir=$(mktemp --directory --tmpdir="${parentWrapperDir}" wrappers.XXXXXXXXXX)
           chmod a+rx $wrapperDir
 
           ${lib.concatStringsSep "\n" mkWrappedPrograms}
@@ -202,13 +209,6 @@ in
             ln --symbolic --force --no-dereference $wrapperDir ${wrapperDir}-tmp
             mv --no-target-directory ${wrapperDir}-tmp ${wrapperDir}
             rm --force --recursive $old
-          elif [ -d ${wrapperDir} ]; then
-            # Compatibility with old state, just remove the folder and symlink
-            rm -f ${wrapperDir}/*
-            # if it happens to be a tmpfs
-            ${pkgs.utillinux}/bin/umount ${wrapperDir} || true
-            rm -d ${wrapperDir}
-            ln -d --symbolic $wrapperDir ${wrapperDir}
           else
             # For initial setup
             ln --symbolic $wrapperDir ${wrapperDir}

@@ -358,7 +358,7 @@ in
       default = null;
       example = {
         address = "131.211.84.1";
-        device = "enp3s0";
+        interface = "enp3s0";
       };
       type = types.nullOr (types.coercedTo types.str gatewayCoerce (types.submodule gatewayOpts));
       description = ''
@@ -371,7 +371,7 @@ in
       default = null;
       example = {
         address = "2001:4d0:1e04:895::1";
-        device = "enp3s0";
+        interface = "enp3s0";
       };
       type = types.nullOr (types.coercedTo types.str gatewayCoerce (types.submodule gatewayOpts));
       description = ''
@@ -587,11 +587,28 @@ in
             description = "The interfaces to bond together";
           };
 
+          driverOptions = mkOption {
+            type = types.attrsOf types.str;
+            default = {};
+            example = literalExample {
+              interfaces = [ "eth0" "wlan0" ];
+              miimon = 100;
+              mode = "active-backup";
+            };
+            description = ''
+              Options for the bonding driver.
+              Documentation can be found in
+              <link xlink:href="https://www.kernel.org/doc/Documentation/networking/bonding.txt" />
+            '';
+
+          };
+
           lacp_rate = mkOption {
             default = null;
             example = "fast";
             type = types.nullOr types.str;
             description = ''
+              DEPRECATED, use `driverOptions`.
               Option specifying the rate in which we'll ask our link partner
               to transmit LACPDU packets in 802.3ad mode.
             '';
@@ -602,6 +619,7 @@ in
             example = 100;
             type = types.nullOr types.int;
             description = ''
+              DEPRECATED, use `driverOptions`.
               Miimon is the number of millisecond in between each round of polling
               by the device driver for failed links. By default polling is not
               enabled and the driver is trusted to properly detect and handle
@@ -614,6 +632,7 @@ in
             example = "active-backup";
             type = types.nullOr types.str;
             description = ''
+              DEPRECATED, use `driverOptions`.
               The mode which the bond will be running. The default mode for
               the bonding driver is balance-rr, optimizing for throughput.
               More information about valid modes can be found at
@@ -626,6 +645,7 @@ in
             example = "layer2+3";
             type = types.nullOr types.str;
             description = ''
+              DEPRECATED, use `driverOptions`.
               Selects the transmit hash policy to use for slave selection in
               balance-xor, 802.3ad, and tlb modes.
             '';
@@ -940,14 +960,8 @@ in
         source  = "${pkgs.iputils.out}/bin/ping";
         capabilities = "cap_net_raw+p";
       };
-
-      ping6 = {
-        source  = "${pkgs.iputils.out}/bin/ping6";
-        capabilities = "cap_net_raw+p";
-      };
     } else {
       ping.source = "${pkgs.iputils.out}/bin/ping";
-      "ping6".source = "${pkgs.iputils.out}/bin/ping6";
     };
 
     # Set the host and domain names in the activation script.  Don't

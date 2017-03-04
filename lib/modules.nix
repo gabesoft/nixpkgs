@@ -59,7 +59,7 @@ rec {
 
       closed = closeModules (modules ++ [ internalModule ]) ({ inherit config options; lib = import ./.; } // specialArgs);
 
-      options = mergeModules prefix (filterModules (specialArgs.modulesPath or "") closed);
+      options = mergeModules prefix (reverseList (filterModules (specialArgs.modulesPath or "") closed));
 
       # Traverse options and extract the option values into the final
       # config set.  At the same time, check whether all option

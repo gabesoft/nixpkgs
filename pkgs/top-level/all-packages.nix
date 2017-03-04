@@ -636,7 +636,9 @@ with pkgs;
 
   blink1-tool = callPackage ../tools/misc/blink1-tool { };
 
-  blitz = callPackage ../development/libraries/blitz { };
+  blitz = callPackage ../development/libraries/blitz {
+    boost = boost160;
+  };
 
   blockdiag = pythonPackages.blockdiag;
 
@@ -1571,6 +1573,8 @@ with pkgs;
 
   edk2 = callPackage ../development/compilers/edk2 { };
 
+  eflite = callPackage ../applications/audio/eflite {};
+
   eid-mw = callPackage ../tools/security/eid-mw { };
 
   eid-viewer = callPackage ../tools/security/eid-viewer { };
@@ -2143,6 +2147,8 @@ with pkgs;
   gzip = callPackage ../tools/compression/gzip { };
 
   gzrt = callPackage ../tools/compression/gzrt { };
+
+  httplab = callPackage ../tools/networking/httplab { };
 
   partclone = callPackage ../tools/backup/partclone { };
 
@@ -2881,7 +2887,9 @@ with pkgs;
 
   minissdpd = callPackage ../tools/networking/minissdpd { };
 
-  miniupnpc = callPackage ../tools/networking/miniupnpc { };
+  inherit (callPackage ../tools/networking/miniupnpc { })
+    miniupnpc_1 miniupnpc_2;
+  miniupnpc = miniupnpc_1;
 
   miniupnpd = callPackage ../tools/networking/miniupnpd { };
 
@@ -4089,6 +4097,8 @@ with pkgs;
 
   tldr = callPackage ../tools/misc/tldr { };
 
+  tlspool = callPackage ../tools/networking/tlspool { };
+
   tmate = callPackage ../tools/misc/tmate { };
 
   tmpwatch = callPackage ../tools/misc/tmpwatch  { };
@@ -4755,7 +4765,7 @@ with pkgs;
 
   clang = llvmPackages.clang;
 
-  clang_40 = lowPrio llvmPackages_40.clang;
+  clang_4 = lowPrio llvmPackages_4.clang;
   clang_39 = llvmPackages_39.clang;
   clang_38 = llvmPackages_38.clang;
   clang_37 = llvmPackages_37.clang;
@@ -5187,8 +5197,6 @@ with pkgs;
     inherit (haskellPackages) idris;
   };
 
-  ikarus = callPackage ../development/compilers/ikarus { };
-
   intercal = callPackage ../development/compilers/intercal {
     flex = flex_2_6_1; # Works with 2.5.35 too, but not 2.6.3
   };
@@ -5310,13 +5318,13 @@ with pkgs;
 
   lizardfs = callPackage ../tools/filesystems/lizardfs { };
 
-  lld = lowPrio llvmPackages_40.lld;
+  lld = lowPrio llvmPackages_4.lld;
 
   lldb = llvmPackages.lldb;
 
   llvm = llvmPackages.llvm;
 
-  llvm_40 = lowPrio llvmPackages_40.llvm;
+  llvm_4 = lowPrio llvmPackages_4.llvm;
   llvm_39 = llvmPackages_39.llvm;
   llvm_38 = llvmPackages_38.llvm;
   llvm_37 = llvmPackages_37.llvm;
@@ -5354,7 +5362,7 @@ with pkgs;
     inherit (stdenvAdapters) overrideCC;
   };
 
-  llvmPackages_40 = callPackage ../development/compilers/llvm/4.0 {
+  llvmPackages_4 = callPackage ../development/compilers/llvm/4 {
     inherit (stdenvAdapters) overrideCC;
   };
 
@@ -7588,6 +7596,11 @@ with pkgs;
 
   gnutls35 = callPackage ../development/libraries/gnutls/3.5.nix {
     guileBindings = config.gnutls.guile or false;
+  };
+
+  gnutls-kdh = callPackage ../development/libraries/gnutls-kdh/3.5.nix {
+    guileBindings = config.gnutls.guile or false;
+    gperf = gperf_3_0;
   };
 
   gpac = callPackage ../applications/video/gpac { };
@@ -12988,8 +13001,6 @@ with pkgs;
 
   cyclone = callPackage ../applications/audio/pd-plugins/cyclone  { };
 
-  d4x = callPackage ../applications/misc/d4x { };
-
   darcs = haskell.lib.overrideCabal haskellPackages.darcs (drv: {
     configureFlags = (stdenv.lib.remove "-flibrary" drv.configureFlags or []) ++ ["-f-library"];
     enableSharedExecutables = false;
@@ -14252,7 +14263,7 @@ with pkgs;
 
 
   liferea = callPackage ../applications/networking/newsreaders/liferea {
-    webkitgtk = webkitgtk24x;
+    inherit (gnome3) libpeas gsettings_desktop_schemas dconf;
   };
 
   lingot = callPackage ../applications/audio/lingot {
@@ -14517,10 +14528,6 @@ with pkgs;
 
   multimon-ng = callPackage ../applications/misc/multimon-ng { };
 
-  multisync = callPackage ../applications/misc/multisync {
-    inherit (gnome2) ORBit2 libbonobo libgnomeui GConf;
-  };
-
   inherit (callPackages ../applications/networking/mumble {
       avahi = avahi.override {
         withLibdnssdCompat = true;
@@ -14538,7 +14545,11 @@ with pkgs;
       else null;
   };
 
-  musescore = libsForQt55.callPackage ../applications/audio/musescore { };
+  musescore =
+    if stdenv.isDarwin then
+      callPackage ../applications/audio/musescore/darwin.nix { }
+    else
+      libsForQt55.callPackage ../applications/audio/musescore { };
 
   mutt = callPackage ../applications/networking/mailreaders/mutt { };
   mutt-with-sidebar = callPackage ../applications/networking/mailreaders/mutt {
@@ -14932,7 +14943,10 @@ with pkgs;
     libtorrentRasterbar = libtorrentRasterbar_1_0;
   };
 
-  eiskaltdcpp = callPackage ../applications/networking/p2p/eiskaltdcpp { lua5 = lua5_1; };
+  eiskaltdcpp = callPackage ../applications/networking/p2p/eiskaltdcpp {
+    lua5 = lua5_1;
+    miniupnpc = miniupnpc_1;
+  };
 
   qemu = callPackage ../applications/virtualization/qemu {
     inherit (darwin.apple_sdk.frameworks) CoreServices Cocoa;
@@ -15270,9 +15284,15 @@ with pkgs;
 
   slic3r = callPackage ../applications/misc/slic3r { };
 
-  curaengine = callPackage ../applications/misc/curaengine { };
+  curaengine_stable = callPackage ../applications/misc/curaengine/stable.nix { };
+  cura_stable = callPackage ../applications/misc/cura/stable.nix {
+    curaengine = curaengine_stable;
+  };
 
-  cura = callPackage ../applications/misc/cura { };
+  curaengine = callPackage ../applications/misc/curaengine {
+    inherit (python3.pkgs) libarcus;
+  };
+  cura = qt5.callPackage ../applications/misc/cura { };
 
   curaLulzbot = callPackage ../applications/misc/cura/lulzbot.nix { };
 
@@ -16482,9 +16502,7 @@ with pkgs;
 
   openrw = callPackage ../games/openrw { };
 
-  openspades = callPackage ../games/openspades {};
-
-  openspades-git = lowPrio (callPackage ../games/openspades/git.nix {});
+  openspades = callPackage ../games/openspades { };
 
   openttd = callPackage ../games/openttd {
     zlib = zlibStatic;
@@ -16561,7 +16579,10 @@ with pkgs;
 
   sauerbraten = callPackage ../games/sauerbraten {};
 
-  scid = callPackage ../games/scid { };
+  scid = callPackage ../games/scid {
+    tcl = tcl-8_5;
+    tk = tk-8_5;
+  };
 
   scummvm = callPackage ../games/scummvm { };
 

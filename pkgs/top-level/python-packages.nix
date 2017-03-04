@@ -824,6 +824,30 @@ in {
     };
   };
 
+  python-sybase = buildPythonPackage rec {
+    name = "python-sybase-${version}";
+    version = "0.40pre2";
+    disabled = isPy3k;
+
+    src = pkgs.fetchurl {
+      url = "https://sourceforge.net/projects/python-sybase/files/python-sybase/${name}/${name}.tar.gz";
+      sha256 = "0pm88hyn18dy7ljam4mdx9qqgmgraf2zy2wl02g5vsjl4ncvq90j";
+    };
+
+    propagatedBuildInputs = [ pkgs.freetds ];
+
+    SYBASE = pkgs.freetds;
+    setupPyBuildFlags = [ "-DHAVE_FREETDS" "-UWANT_BULKCOPY" ];
+
+    meta = {
+      description = "The Sybase module provides a Python interface to the Sybase relational database system";
+      homepage    = http://python-sybase.sourceforge.net;
+      license     = licenses.bsd3;
+      maintainers = with maintainers; [ veprbl ];
+      platforms   = platforms.unix;
+    };
+  };
+
   almir = buildPythonPackage rec {
     name = "almir-0.1.8";
 
@@ -1369,29 +1393,7 @@ in {
     };
   });
 
-  astroid = buildPythonPackage rec {
-    name = "astroid-1.4.4";
-
-    propagatedBuildInputs = with self; [ logilab_common six lazy-object-proxy wrapt ];
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/a/astroid/${name}.tar.gz";
-      sha256 = "7f7e5512efe515098e77cbd3a60e87c8db8954097b0e025d8d6f72f2e8ddc298";
-    };
-
-    checkPhase = ''
-        ${python.interpreter} -m unittest discover
-    '';
-
-    # Tests cannot be found because they're named unittest_...
-    # instead of test_...
-
-    meta = {
-      description = "A abstract syntax tree for Python with inference support";
-      homepage = http://bitbucket.org/logilab/astroid;
-      license = with licenses; [ lgpl2 ];
-    };
-  };
+  astroid = callPackage ../development/python-modules/astroid { };
 
   attrdict = buildPythonPackage (rec {
     name = "attrdict-2.0.0";
@@ -5069,6 +5071,41 @@ in {
       homepage    = "http://github.com/syrusakbary/pyjade";
       license     = licenses.mit;
       maintainers = with maintainers; [ nand0p ];
+      platforms   = platforms.all;
+    };
+  };
+
+  pyhepmc = buildPythonPackage rec {
+    name = "pyhepmc-${version}";
+    version = "0.5.0";
+    disabled = isPy3k;
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/p/pyhepmc/${name}.tar.gz";
+      sha256 = "1rbi8gqgclfvaibv9kzhfis11gw101x8amc93qf9y08ny4jfyr1d";
+    };
+
+    patches = [
+      # merge PR https://bitbucket.org/andybuckley/pyhepmc/pull-requests/1/add-incoming-outgoing-generators-for/diff
+      ../development/python-modules/pyhepmc_export_edges.patch
+      # add bindings to Flow class
+      ../development/python-modules/pyhepmc_export_flow.patch
+    ];
+
+    # regenerate python wrapper
+    preConfigure = ''
+      rm hepmc/hepmcwrap.py
+      swig -c++ -I${pkgs.hepmc}/include -python hepmc/hepmcwrap.i
+    '';
+
+    buildInputs = with pkgs; [ swig hepmc ];
+
+    HEPMCPATH = pkgs.hepmc;
+
+    meta = {
+      description = "A simple wrapper on the main classes of the HepMC event simulation representation, making it possible to create, read and manipulate HepMC events from Python code";
+      license     = licenses.gpl2;
+      maintainers = with maintainers; [ veprbl ];
       platforms   = platforms.all;
     };
   };
@@ -10986,6 +11023,26 @@ in {
     };
   };
 
+  enum-compat = buildPythonPackage rec {
+    pname = "enum-compat";
+    version = "0.0.2";
+    name = "${pname}-${version}";
+
+    src = fetchPypi {
+      inherit pname version;
+      sha256 = "14j1i963jic2vncbf9k5nq1vvv8pw2zsg7yvwhm7d9c6h7qyz74k";
+    };
+
+    propagatedBuildInputs = with self; [ enum34 ];
+
+    meta = {
+      homepage = "https://github.com/jstasiak/enum-compat";
+      description = "enum/enum34 compatibility package";
+      license = licenses.mit;
+      maintainers = with maintainers; [ abbradar ];
+    };
+  };
+
   enum34 = if pythonAtLeast "3.4" then null else buildPythonPackage rec {
     pname = "enum34";
     version = "1.1.6";
@@ -15299,6 +15356,24 @@ in {
     };
   };
 
+  graphviz = buildPythonPackage rec {
+    name = "graphviz-${version}";
+    version = "0.5.2";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/g/graphviz/${name}.zip";
+      sha256 = "0jh31nlm0qbxwylhdkwnb69pcjlc5z03fcfbs0gvgzp3hfrngsk0";
+    };
+
+    propagatedBuildInputs = [ pkgs.graphviz ];
+
+    meta = {
+      description = "Simple Python interface for Graphviz";
+      homepage = https://github.com/xflr6/graphviz;
+      license = licenses.mit;
+    };
+  };
+
   pygraphviz = buildPythonPackage rec {
     name = "pygraphviz-${version}";
     version = "1.4rc1";
@@ -19269,7 +19344,7 @@ in {
   };
   protobuf3_0 = callPackage ../development/python-modules/protobuf.nix {
     disabled = isPyPy;
-    doCheck = isPy3k;
+    doCheck = !isPy3k;
     protobuf = pkgs.protobuf3_0;
   };
   protobuf2_6 = callPackage ../development/python-modules/protobuf.nix {
@@ -20305,12 +20380,12 @@ in {
   };
 
   pygments = buildPythonPackage rec {
-    version = "2.1.3";
+    version = "2.2.0";
     name = "Pygments-${version}";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/P/Pygments/${name}.tar.gz";
-      sha256 = "10axnp2wpjnq9g8wg53fx0c70dfxqrz498jyz8mrdx9a3flwir48";
+      sha256 = "1k78qdvir1yb1c634nkv6rbga8wv4289xarghmsbbvzhvr311bnv";
     };
 
     propagatedBuildInputs = with self; [ docutils ];
@@ -20360,31 +20435,7 @@ in {
     };
   };
 
-  pylint = buildPythonPackage rec {
-    name = "pylint-${version}";
-    version = "1.5.4";
-
-    src = pkgs.fetchurl {
-        url = "mirror://pypi/p/pylint/${name}.tar.gz";
-        sha256 = "2fe3cc2fc66a56fdc35dbbc2bf1dd96a534abfc79ee6b2ad9ae4fe166e570c4b";
-    };
-
-    propagatedBuildInputs = with self; [ astroid ];
-
-    checkPhase = ''
-        cd pylint/test; ${python.interpreter} -m unittest discover -p "*test*"
-    '';
-
-    postInstall = ''
-        mkdir -p $out/share/emacs/site-lisp
-        cp "elisp/"*.el $out/share/emacs/site-lisp/
-    '';
-
-    meta = {
-        homepage = http://www.logilab.org/project/pylint;
-        description = "A bug and style checker for Python";
-    };
-  };
+  pylint = callPackage ../development/python-modules/pylint { };
 
   pyopencl = callPackage ../development/python-modules/pyopencl { };
 
@@ -20787,11 +20838,11 @@ in {
 
   pyparsing = buildPythonPackage rec {
     name = "pyparsing-${version}";
-    version = "2.1.8";
+    version = "2.1.10";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/p/pyparsing/${name}.tar.gz";
-      sha256 = "0sy5fxhsvhf0fwk9h6nqlhn1lsjpdmg41jziw5z814rlkydqd903";
+      sha256 = "811c3e7b0031021137fc83e051795025fcb98674d07eb8fe922ba4de53d39188";
     };
 
     # Not everything necessary to run the tests is included in the distribution
@@ -22775,12 +22826,12 @@ in {
   };
 
   rootpy = buildPythonPackage rec {
-    version = "0.8.3";
+    version = "0.9.0";
     name = "rootpy-${version}";
 
     src = pkgs.fetchurl {
-      url = "https://pypi.python.org/packages/d5/40/feddb2c9d1cadfe05d1d9aea1a71be093dc700879c9f6af40a10b1330f34/rootpy-0.8.3.tar.gz";
-      sha256 = "14q9bhs2a53598571x8yikj68x2iyl6090wbvdrpbwr238799b0z";
+      url = "mirror://pypi/r/rootpy/${name}.tar.gz";
+      sha256 = "04alx6afiyahhv816f6zpwnm0sx2jxgqpgqcn6kdw0wnpc9625cr";
     };
 
     disabled = isPy3k;
@@ -28129,6 +28180,10 @@ EOF
     inherit (pkgs) libasyncns pkgconfig;
   };
 
+  libarcus = callPackage ../development/python-modules/libarcus {
+    protobuf = self.protobuf3_0;
+  };
+
   pybrowserid = buildPythonPackage rec {
     name = "PyBrowserID-${version}";
     version = "0.9.2";
@@ -28952,7 +29007,8 @@ EOF
         --replace 'pyyaml==3.11' 'pyyaml' \
         --replace 'lxml==3.7.1' 'lxml' \
         --replace 'pyopenssl==16.2.0' 'pyopenssl' \
-        --replace 'requests[socks]==2.12.4' 'requests[socks]'
+        --replace 'requests[socks]==2.12.4' 'requests[socks]' \
+        --replace 'pygments==2.1.3' 'pygments>=2.1,<3.0'
     '';
 
     propagatedBuildInputs = with self; [
@@ -31875,10 +31931,10 @@ EOF
   };
 
   packaging = buildPythonPackage rec {
-    name = "packaging-16.7";
+    name = "packaging-16.8";
     src = pkgs.fetchurl {
       url = "mirror://pypi/p/packaging/${name}.tar.gz";
-      sha256 = "07h18mrpqs0lv2x4fl43pqi0xj6hdrmrnm6v9q634yliagg6q91f";
+      sha256 = "5d50835fdf0a7edf0b55e311b7c887786504efea1177abd7e69329a8e5ea619e";
     };
     propagatedBuildInputs = with self; [ pyparsing six ];
     buildInputs = with self; [ pytest pretend ];
@@ -31986,6 +32042,8 @@ EOF
     };
   };
 
+  uranium = callPackage ../development/python-modules/uranium { };
+
   urlscan = callPackage ../applications/misc/urlscan { };
 
   vine = buildPythonPackage rec {
@@ -32025,6 +32083,26 @@ EOF
 
   zeitgeist = if isPy3k then throw "zeitgeist not supported for interpreter ${python.executable}" else
     (pkgs.zeitgeist.override{python2Packages=self;}).py;
+
+  zeroconf = buildPythonPackage rec {
+    pname = "zeroconf";
+    version = "0.18.0";
+    name = "${pname}-${version}";
+
+    src = fetchPypi {
+      inherit pname version;
+      sha256 = "0s1840v2h4h19ad8lfadbm3dhzs8bw9c5c3slkxql1zsaiycvjy2";
+    };
+
+    propagatedBuildInputs = with self; [ netifaces six enum-compat ];
+
+    meta = {
+      description = "A pure python implementation of multicast DNS service discovery";
+      homepage = "https://github.com/jstasiak/python-zeroconf";
+      license = licenses.lgpl21;
+      maintainers = with maintainers; [ abbradar ];
+    };
+  };
 
   zipfile36 = buildPythonPackage rec {
     pname = "zipfile36";

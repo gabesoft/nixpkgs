@@ -29,6 +29,7 @@
   ./hardware/ckb.nix
   ./hardware/cpu/amd-microcode.nix
   ./hardware/cpu/intel-microcode.nix
+  ./hardware/sensor/iio.nix
   ./hardware/ksm.nix
   ./hardware/mcelog.nix
   ./hardware/network/b43.nix
@@ -571,6 +572,7 @@
   ./services/x11/display-managers/lightdm.nix
   ./services/x11/display-managers/sddm.nix
   ./services/x11/display-managers/slim.nix
+  ./services/x11/display-managers/xpra.nix
   ./services/x11/hardware/libinput.nix
   ./services/x11/hardware/multitouch.nix
   ./services/x11/hardware/synaptics.nix

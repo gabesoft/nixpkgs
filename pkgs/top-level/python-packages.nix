@@ -3677,6 +3677,24 @@ in {
     };
   };
 
+  bcolz = buildPythonPackage rec {
+    name = "bcolz-1.1.2";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/b/bcolz/${name}.tar.gz";
+      sha256 = "0ws0b9p1r4gcxic7fm8clm2q2ily3bd6i4giczw4s6gv5ilk7ds2";
+    };
+
+    propagatedBuildInputs = with self; [ numpy mock ];
+    buildInputs = with self; [ numpy ];
+
+    meta = {
+      description = "A columnar data container that can be compressed.";
+      homepage = "https://github.com/Blosc/bcolz";
+      maintainers = with maintainers; [ gabesoft ];
+      license = licenses.bsd3;
+    };
+  };
 
   pbkdf2 = buildPythonPackage rec {
     name = "pbkdf2-1.3";

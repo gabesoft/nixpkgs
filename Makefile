@@ -1,4 +1,4 @@
 
 # Link local channel
 local:
-	ln -sf /home/gabe/nixpkgs /home/gabe/.nix-defexpr/local
+	ln -sf $$HOME/nixpkgs $$HOME/.nix-defexpr/local
